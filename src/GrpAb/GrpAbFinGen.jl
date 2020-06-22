@@ -137,6 +137,10 @@ end
 Creates the free abelian group of rank `n`.
 """
 function free_abelian_group(n::Int)
+  return free_abelian_group(GrpAbFinGen, n)
+end
+
+function free_abelian_group(::Type{GrpAbFinGen}, n::Int)
   return abelian_group(zeros(Int, n))
 end
 
@@ -844,9 +848,9 @@ A free resultion for $G$, ie. a chain complex terminating in
 $G \to \{0\}$ that is exact.
 """
 function free_resolution(G::GrpAbFinGen)
-  A = free_abelian_group(ngens(G))
+  A = free_abelian_group(GrpAbFinGen, ngens(G))
   R = rels(G)
-  B = free_abelian_group(nrows(R))
+  B = free_abelian_group(GrpAbFinGen, nrows(R))
   h_A_G = hom(A, G, gens(G))
   h_B_A = hom(B, A, [A(R[i, :]) for i=1:ngens(B)])
   Z = abelian_group(Int[1])
