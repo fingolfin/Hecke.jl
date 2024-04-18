@@ -585,7 +585,7 @@ end
 
 Parent for factored elements, ie. power products.
 """
-mutable struct FacElemMon{S} <: Ring
+mutable struct FacElemMon{S}
   base_ring::S  # for the base
   basis_conjugates_log::Dict{RingElem, Tuple{Int, Vector{ArbFieldElem}}}
   basis_conjugates::Dict{RingElem, Tuple{Int, Vector{ArbFieldElem}}}
@@ -622,6 +622,8 @@ mutable struct FacElemMon{S} <: Ring
 end
 
 FacElemMon(R::S) where {S} = FacElemMon{S}(R)
+
+const FacElemMonDict = AbstractAlgebra.CacheDictType()
 
 """
     FacElem{B, S}
