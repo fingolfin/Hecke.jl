@@ -69,8 +69,6 @@ end
 
 # abstract nonsense
 
-const FacElemMonDict = AbstractAlgebra.CacheDictType{Ring, FacElemMon}()
-
 function (x::FacElemMon{S})() where S
   z = FacElem{elem_type(S), S}()
   z.fac = Dict{elem_type(S), ZZRingElem}()
@@ -226,7 +224,7 @@ end
 
 function AbstractAlgebra.expressify(x::FacElem; context=nothing)
   if length(x.fac) == 0
-    return Expr(:1)
+    return 1
   end
   prod = Expr(:call, :*)
   for (k,v) = x.fac
