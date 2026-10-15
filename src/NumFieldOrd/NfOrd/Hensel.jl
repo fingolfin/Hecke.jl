@@ -466,8 +466,11 @@ function _hensel(f::Generic.Poly{AbsSimpleNumFieldElem},
   local Mi::ZZMatrix
   local d::ZZRingElem
 
+  q, gq, fq = _root_test_data(f, p)
+
   @vprintln :Saturate 1 "Maximum number of steps: $(length(pr))"
   for i=2:length(pr)
+    any(roots_to_lift) || break
     @vprintln :Saturate 1 "Step number $i"
     pp = ZZRingElem(p)^pr[i]
     Q = residue_ring(ZZ, pp, cached=false)[1]
@@ -477,6 +480,7 @@ function _hensel(f::Generic.Poly{AbsSimpleNumFieldElem},
     #the poly mod P^??
     if !ispure
       fpp = ZZModPolyRingElem[change_base_ring(Q, f_coeff_ZX[k + 1]; parent = Qt) for k=0:degree(f)]
+      dfpp = ZZModPolyRingElem[k * fpp[k + 1] for k=1:degree(f)]
     end
 
     #we need to evaluate fp and fp' at the roots (later)
@@ -569,23 +573,25 @@ function _hensel(f::Generic.Poly{AbsSimpleNumFieldElem},
 
       if !ispure
         pow = ZZModPolyRingElem[Qt(1), change_base_ring(Q, RT[j]; parent = Qt)]
-        while length(pow) <= degree(f)+1
-          push!(pow, pow[2]*pow[end] % pgg)
+        while length(pow) <= degree(f)
+          push!(pow, mulmod(pow[2], pow[end], pgg))
         end
 
+        # f and f' at the root, accumulated in place
+        tmp = Qt()
         eval_f = pow[1] * fpp[1]
         for k in 2:length(fpp)
-          eval_f = eval_f +  pow[k] * fpp[k]
+          mul!(tmp, pow[k], fpp[k])
+          add!(eval_f, eval_f, tmp)
         end
-        eval_f = eval_f % pgg
+        eval_f = rem(eval_f, pgg)
 
-        #eval_f = sum(pow[k] * fp[k] for k=1:length(fp)) % pgg
-        eval_fs = pow[1] * fpp[2]
-        for k in 3:length(fpp)
-          eval_fs = eval_fs + pow[k-1] *(k-1)*fpp[k]
+        eval_fs = pow[1] * dfpp[1]
+        for k in 2:length(dfpp)
+          mul!(tmp, pow[k], dfpp[k])
+          add!(eval_fs, eval_fs, tmp)
         end
-        eval_fs = eval_fs % pgg
-        #eval_fs = sum(pow[k-1] *(k-1)*fp[k] for k=2:length(fp)) % pgg
+        eval_fs = rem(eval_fs, pgg)
 
         #double lift:
         #IRT = invmod(fp'(rt), p^k)
@@ -616,7 +622,11 @@ function _hensel(f::Generic.Poly{AbsSimpleNumFieldElem},
         setcoeff!(z, kk-1, ve[1, kk])
       end
       zz = K(z)*iden
-      if res[j] == zz || i == length(pr)
+      is_stable = res[j] == zz
+      res[j] = zz
+      # Waiting for the reconstruction to stabilise costs one more step at
+      # twice the precision, so test a candidate modulo q first.
+      if is_stable || i == length(pr) || _is_root_mod(zz, q, gq, fq)
         if (!ispure && iszero(f(zz))) || (ispure && zz^degree(f) == -coeff(f, 0))
           push!(rs, zz)
           if length(rs) >= max_roots
@@ -629,13 +639,43 @@ function _hensel(f::Generic.Poly{AbsSimpleNumFieldElem},
         if i == length(pr) && is_normal
           return AbsSimpleNumFieldElem[]
         end
-      else
-        res[j] = zz
       end
     end
   end
 
   return rs
+end
+
+# Reduction of K and f modulo a prime q != p, for the necessary root test
+# _is_root_mod. The defining polynomial and f must be q-integral and keep
+# their degree.
+function _root_test_data(f::Generic.Poly{AbsSimpleNumFieldElem}, p::Int)
+  K = base_ring(f)
+  g = defining_polynomial(K)
+  q = next_prime(2^30)
+  while q == p || is_divisible_by(denominator(g), q) ||
+        is_divisible_by(numerator(leading_coefficient(g)), q) ||
+        any(i -> is_divisible_by(denominator(coeff(f, i)), q), 0:degree(f))
+    q = next_prime(q)
+  end
+  Fqx = polynomial_ring(Native.GF(q, cached = false), "x", cached = false)[1]
+  gq = change_base_ring(base_ring(Fqx), g; parent = Fqx)
+  fq = fpPolyRingElem[rem(Fqx(coeff(f, i)), gq) for i in 0:degree(f)]
+  return q, gq, fq
+end
+
+# Necessary condition for f(z) = 0: it holds in F_q[x]/(g mod q).
+function _is_root_mod(z::AbsSimpleNumFieldElem, q::Int, gq::fpPolyRingElem, fq::Vector{fpPolyRingElem})
+  if is_divisible_by(denominator(z), q)
+    return false
+  end
+  zq = rem(parent(gq)(z), gq)
+  s = fq[end]
+  for i in length(fq)-1:-1:1
+    s = mulmod(s, zq, gq)
+    s = add!(s, s, fq[i])
+  end
+  return iszero(s)
 end
 
 function _hensel(f::Generic.Poly{AbsSimpleNumFieldElem}, p::Int, k::Int; max_roots::Int = degree(f))
