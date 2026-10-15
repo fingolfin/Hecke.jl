@@ -31,6 +31,8 @@
     R, mR = ray_class_group(ideal(O, 1), n_quo = 2)
     @test order(R) == 2
     @test isempty(defining_modulus(mR)[2])
+    P = prime_decomposition(O, 2)[1][1]
+    @test mR\FacElem(Dict(P => 3)) == mR\P
   end
 
   @testset "complex infinite modulus" begin

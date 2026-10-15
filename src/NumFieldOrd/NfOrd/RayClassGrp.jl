@@ -185,15 +185,15 @@ function class_as_ray_class(C::FinGenAbGroup, mC::MapClassGrp, exp_class::Functi
   if expo != -1
     Q, mQ = quo(C, expo, false)
     local disclog1
-    let Q = Q, mC = mC, mQ = mQ, X = X
+    let Q = Q, mC = mC, mQ = mQ
       function disclog1(J::AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem})
         return mQ(mC\(J))
       end
 
       function disclog1(J::FacElem{AbsNumFieldOrderIdeal{AbsSimpleNumField, AbsSimpleNumFieldElem}, AbsNumFieldOrderIdealSet{AbsSimpleNumField, AbsSimpleNumFieldElem}})
-        a = X[0]
+        a = Q[0]
         for (f, k) in J.fac
-          a += k*disclog(f)
+          a += k*disclog1(f)
         end
         return a
       end
