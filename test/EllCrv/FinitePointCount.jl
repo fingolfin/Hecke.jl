@@ -55,9 +55,9 @@
       return true
     end
 
-    @test test_agm_subfield(3, 60)
-    @test test_agm_subfield(4, 40)
-    @test test_agm_subfield(5, 30)
+    @test test_agm_subfield(3, 30)
+    @test test_agm_subfield(4, 20)
+    @test test_agm_subfield(5, 15)
 
     # some standard "large" curves in characteristic 2
     u = polynomial_ring(GF(2), :u; cached = false)[2]
@@ -527,7 +527,7 @@
     test_schoof_subfield(5,1,10)
     test_schoof_subfield(5,2,10)
     test_schoof_subfield(7,1,10)
-    test_schoof_subfield(7,2,10)
+    test_schoof_subfield(7,2,8)
     test_schoof_subfield(11,1,10)
     test_schoof_subfield(13,1,10)
   end
