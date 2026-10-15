@@ -909,6 +909,11 @@ end
 @testset "Shortest vectors sublattice" begin
   L = integer_lattice(gram = matrix(QQ, 3, 3, [2,0,0,0,2,1,0,1,6]))
   @test shortest_vectors_sublattice(L) == lattice(ambient_space(L), ZZ[1 0 0; 0 1 0])
+
+  # equal diagonal entries with shorter vectors, non-integral gram
+  L = integer_lattice(gram = matrix(QQ, 2, 2, [4//3, 1, 1, 4//3]))
+  shortest_vectors_sublattice(L)
+  @test minimum(L) == 2//3
 end
 
 
