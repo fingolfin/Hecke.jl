@@ -446,6 +446,17 @@ gives the splitting type of the corresponding prime, ordered as inertia degree a
 """
 function prime_decomposition_type(O::AbsSimpleNumFieldOrder, p::T) where T <: IntegerUnion
   if !is_defining_polynomial_nice(nf(O))
+    # If p is unramified and the defining polynomial has p-unit leading
+    # coefficient and squarefree reduction, Kummer-Dedekind still applies.
+    g = defining_polynomial(nf(O))
+    if !is_divisible_by(denominator(g), p) &&
+       !is_divisible_by(numerator(leading_coefficient(g)), p) &&
+       !is_divisible_by(discriminant(O), p)
+      gp = change_base_ring(Native.GF(p, cached = false), g)
+      if !iszero(discriminant(gp))
+        return _prime_decomposition_type(divexact(gp, leading_coefficient(gp)))
+      end
+    end
     return Tuple{Int, Int}[(degree(x[1]), x[2]) for x = prime_decomposition(O, p)]
   end
   if (mod(discriminant(O), p)) != 0 && (mod(ZZRingElem(index(O)), p) != 0)
