@@ -154,15 +154,16 @@
   p3 = prime_ideals_over(OF, 3)[1]
 
   # Test the computation of jordan decomposition
+  # one genus per Jordan type: each search enumerates all decompositions of its type
   G = Hecke.quadratic_local_genera(F, p, rank = 3, det_val = 2)
-  for g in G
+  for g in unique(g -> (g.scales, g.ranks), G)
     g1 = genus(QuadLat, p, g.ranks, g.scales, g.weights, g.dets, g.normgens, g.witt)
-    representative(g1) in G  # computes jordan decompositions
+    @test representative(g1) in g  # computes jordan decompositions
   end
   G = Hecke.quadratic_local_genera(F, p3, rank = 3, det_val = 2)
   for g in G
     g1 = genus(QuadLat, p3, g.uniformizer, g.ranks, g.scales, g.detclasses)
-    representative(g1) in G  # computes jordan decompositions
+    @test representative(g1) in g  # computes jordan decompositions
   end
 
   sig = Dict([(pl[1],0),(pl[2],0)])
