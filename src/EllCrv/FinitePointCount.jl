@@ -19,16 +19,34 @@ $\mathbf Z/p\mathbf Z$ using exhaustive search.
 """
 function order_via_exhaustive_search(E::EllipticCurve{T}) where T<:FinFieldElem
   R = base_field(E)
-  order = ZZ(1)
+  char2 = characteristic(R) == 2
+  order = 1
   a1, a2, a3, a4, a6 = a_invariants(E)
-  Ry, y = polynomial_ring(R, :y)
+
+  # count the solutions y of y^2 + b*y = c without factoring a polynomial:
+  # odd characteristic: 1 + chi(b^2 + 4c), chi the quadratic character;
+  # characteristic 2: y -> y^2 + b*y is bijective for b = 0, and for b != 0
+  # the substitution y = b*z gives z^2 + z = c/b^2, solvable iff Tr(c/b^2) = 0
   for x = R
-    f = y^2 +a1*x*y + a3*y - x^3 - a2*x^2 - a4*x - a6
-    ys = roots(f)
-    order += length(ys)
+    b = a1*x + a3
+    c = ((x + a2)*x + a4)*x + a6
+    if char2
+      if iszero(b)
+        order += 1
+      elseif iszero(absolute_tr(divexact(c, b^2)))
+        order += 2
+      end
+    else
+      disc = b^2 + 4*c
+      if iszero(disc)
+        order += 1
+      elseif is_square(disc)
+        order += 2
+      end
+    end
   end
 
-  return order
+  return ZZ(order)
 end
 
 ################################################################################
