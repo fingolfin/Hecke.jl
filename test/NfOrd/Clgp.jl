@@ -345,6 +345,19 @@ end
     unit_group_fac_elem(lll(O); GRH = false)
   end
 
+  @testset "Minkowski unit from subfield units" begin
+    # Q(sqrt(2), sqrt(3)): no single subfield unit is a Minkowski unit
+    K, a = number_field(x^4 - 10x^2 + 1)
+    r2 = (a^3 - 9a)//2
+    r3 = (11a - a^3)//2
+    u2, u3, u6 = 1 + r2, 2 + r3, 5 + 2*r2*r3
+    C = Hecke.VerifyUnitGroup.initialize_verify_context([u2, u3, u6])
+    @test first(Hecke._isindependent([f(C.u) for f in C.auts]))
+    # the product of these is not a Minkowski unit either
+    C = Hecke.VerifyUnitGroup.initialize_verify_context([u2*u3, inv(u3), u6])
+    @test first(Hecke._isindependent([f(C.u) for f in C.auts]))
+  end
+
   @testset "Class group with small generating set" begin
     K, a = number_field(x^6 - 2*x^5 + 756*x^4 - 1006*x^3 + 192535*x^2 - 128528*x + 16515841)
     OK = maximal_order(K)

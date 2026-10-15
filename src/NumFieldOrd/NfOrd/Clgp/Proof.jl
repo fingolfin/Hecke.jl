@@ -461,12 +461,13 @@ function initialize_verify_context(units_fac::Vector{<:FacElem}; test_normality:
       end
     end
     if is_zero(u)
-      # not found yet
+      # not found yet, try random products of the units
       k = 0
-      uu = K(mU(U(rand(0:1, ngens(U)))))
-      while !(Hecke._isindependent([a(uu) for a in auts]))
+      uu = prod(units_fac)
+      while !first(Hecke._isindependent([a(uu) for a in auts]))
         k += 1
-        uu = K(mU(rand(U, 2)))
+        # nonzero exponents, an empty FacElem cannot be mapped
+        uu = prod(units_fac .^ rand([-2, -1, 1, 2], length(units_fac)))
         if k > 100
           error("something wrong")
         end
