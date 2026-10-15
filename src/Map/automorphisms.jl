@@ -50,13 +50,14 @@ function _automorphisms(K::AbsSimpleNumField; is_abelian::Bool = false)
   f1 = change_base_ring(K, f, parent = Kt)
   divpol = Kt(AbsSimpleNumFieldElem[-gen(K), K(1)])
   f1 = divexact(f1, divpol)
-  lr = roots(f1, max_roots = div(ord_aut, 2))
-  Aut1 = Vector{automorphism_type(K)}(undef, length(lr)+1)
+  # The roots are lifted simultaneously, so all of them cost little more
+  # than half of them, while the closure composes in characteristic 0.
+  lr = roots(f1, max_roots = ord_aut - 1)
+  auts = Vector{automorphism_type(K)}(undef, length(lr)+1)
+  auts[1] = id_hom(K)
   for i = 1:length(lr)
-    Aut1[i] = hom(K, K, lr[i], check = false)
+    auts[i + 1] = hom(K, K, lr[i], check = false)
   end
-  Aut1[end] = id_hom(K)
-  auts = closure(Aut1, degree(K))
   return auts
 end
 
