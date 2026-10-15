@@ -83,11 +83,10 @@ end
   @test length(factor(t)) == 1
   @test length(factor(t^10)) == 1
 
-  # Now the same with non-nice defining polynomial
+  # Now the same with non-nice defining polynomial; each van Hoeij call takes
+  # seconds, so use few fixed scalings
 
-  for i in 1:10
-    n = rand(1:10)
-    d = rand(1:10)
+  for (n, d) in [(3, 7), (10, 9)]
     k, a = number_field(n//d * change_base_ring(QQ, swinnerton_dyer(3, x)))
     kt, t = k["t"]
     g = swinnerton_dyer(8, x)
