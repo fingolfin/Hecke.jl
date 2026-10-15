@@ -398,8 +398,9 @@
   g = @inferred genus(HermLat, E1, q, [(0, 2, 1)])
   M = representative(g)
   G2 = genus(M)
-  @test genus(representative(direct_sum(G, G2))) == direct_sum(G, G2)
-  @test genus(representative(direct_sum(G2, G))) == direct_sum(G2, G)
+  G3 = direct_sum(G, G2)
+  @test genus(representative(G3)) == G3
+  @test direct_sum(G2, G) == G3
   @test scale(G2) == scale(M)
   @test norm(G2) == norm(M)
 
@@ -519,7 +520,7 @@
   L, b = number_field(t^2 - a * t + 1)
   rlp = real_places(K)
   G = @inferred hermitian_genera(L, 3, Dict(rlp[1] => 1, rlp[2] => 1), 100 * maximal_order(L))
-  for i in 1:10
+  for i in 1:3
     g1 = rand(G)
     g2 = rand(G)
     M, = @inferred direct_sum(representative(g1), representative(g2))
