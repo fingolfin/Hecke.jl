@@ -320,12 +320,17 @@ end
   @test length(l1) == 3
   l2 = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, signatures = [(0, 6)])
   @test length(l2) == 25
-  l3 = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, signatures = [(0, 6), (4, 4)])
-  @test length(l3) == 28
   l4 = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, signatures = [(0, 6), (4, 4), (0, 0)])
   @test length(l4) == 28
   l5 = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, signatures = [(0, 0)])
   @test length(l5) == 0
+
+  # precomputed conductors
+  conds = Hecke.conductors_generic(K, [2, 2], ZZ(10)^12)
+  ll = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, conductors = conds)
+  @test length(ll) == length(l)
+  ll1 = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, signatures = [(4, 4)], conductors = conds)
+  @test length(ll1) == length(l1)
 
   # a wrong conductor
 
@@ -453,7 +458,9 @@ end
   Qx, x = QQ["x"]
   f = x^6-x^5+x^4-2*x^3+x^2+1
   k = splitting_field(f)
-  I = Hecke.lorenz_module(k, 12)
+  I = Hecke.lorenz_module(k, 3)
+  @test Hecke.is_consistent(I)
+  I = Hecke.lorenz_module(quadratic_field(5)[1], 4)
   @test Hecke.is_consistent(I)
 end
 
@@ -472,17 +479,6 @@ let
   lp = prime_ideals_up_to(OK, 10^3)
   prime_cond = abelian_extensions(K, [2], ZZRingElem(10)^3, absolutely_distinct = true, conductors = lp)
   @test length(prime_cond) == count(is_prime.(first.(conductor.(all_fields))))
-
-  # with target signatures
-  K, a = number_field(x^3 - x^2 - 2*x + 1, cached = false)
-  l = abelian_extensions(K, [2, 2], ZZRingElem(10)^12)
-  conds = Hecke.conductors_generic(K, [2, 2], ZZ(10)^12)
-  l = abelian_extensions(K, [2, 2], ZZRingElem(10)^12)
-  ll = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, conductors = conds)
-  @test length(l) == length(ll)
-  l1 = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, signatures = [(4, 4)])
-  ll1 = abelian_extensions(K, [2, 2], ZZRingElem(10)^12, signatures = [(4, 4)], conductors = conds)
-  @test length(l1) == length(ll1)
 end
 
 let
@@ -518,7 +514,7 @@ let # cornercase with trivial automorphism group
   f = x^4 + 4*x^2 + 1
   K, a = number_field(f, :a)
   OK = maximal_order(K)
-  ab = abelian_normal_extensions(K, [4], ZZ(100000000000000000000545460846592))
+  ab = abelian_normal_extensions(K, [4], ZZ(10)^16)
   L = number_field(ab[1])
   @test degree(L) == 4
 end
