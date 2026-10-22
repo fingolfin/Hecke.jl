@@ -63,6 +63,7 @@ using Random: Sampler, SamplerTrivial, GLOBAL_RNG
 using RandomExtensions: RandomExtensions, make, Make2, Make3, Make4
 
 import Nemo
+import PrecompileTools
 
 import Pkg
 
@@ -1052,11 +1053,7 @@ precompile(class_group, (AbsSimpleNumFieldOrder,))
 
 using .NormRel
 
-#if ccall(:jl_generating_output, Cint, ()) == 1   # if we're precompiling the package
-#  let
-#    include(joinpath("..", "system", "precompile.jl"))
-#  end
-#end
+include("precompile_workload.jl")
 
 ################################################################################
 #
