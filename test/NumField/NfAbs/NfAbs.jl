@@ -196,3 +196,23 @@ end
   @test haskey(chains, objectid(L))
   @test !haskey(chains, objectid(A))
 end
+
+@testset "Common super fields of a field and its absolute field" begin
+  # absolute_simple_field embeds K and its absolute field into each other,
+  # and the search for a common super field must not loop on that cycle. A
+  # child process with a timeout catches an endless loop.
+  code = """
+    using Hecke, Test
+    Qx, x = QQ["x"]
+    K, a = number_field([x^2 - 2, x^2 - 3]; cached = false)
+    K2, b = number_field([x^2 - 5, x^2 - 7]; cached = false)
+    absolute_simple_field(K)
+    @test_throws "no common parent known" a[1] + b[1]
+    """
+  project = Base.active_project()
+  cmd = `$(Base.julia_cmd()) --project=$project --startup-file=no -e $code`
+  p = run(pipeline(cmd; stdout, stderr); wait = false)
+  @test timedwait(() -> process_exited(p), 900) === :ok
+  process_exited(p) || kill(p)
+  @test success(p)
+end
