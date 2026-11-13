@@ -249,8 +249,8 @@
 end
 
 @testset "Binary operations with different parents" begin
-  # Operations on elements of different fields are carried out in a known
-  # common super field, and throw if there is none.
+  # Operations on elements of different fields, and coercion between them,
+  # are carried out in a known common super field and throw if there is none.
   Qx, x = QQ["x"]
   k, = quadratic_field(2)
   ky, y = k["y"]
@@ -267,6 +267,7 @@ end
     @test_throws ErrorException a * b
     @test_throws ErrorException a // b
     @test_throws ErrorException a == b
+    @test_throws ErrorException parent(b)(a)
   end
 
   # `embed` does not record K as a subfield of M for `common_super`, so the

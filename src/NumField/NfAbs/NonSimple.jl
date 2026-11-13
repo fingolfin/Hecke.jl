@@ -932,7 +932,7 @@ function (K::AbsNonSimpleNumField)(a::AbsNonSimpleNumFieldElem)
   if parent(a) === K
     return deepcopy(a)
   end
-  error("not compatible")
+  return force_coerce(K, a)
 end
 
 function show_sparse_cyclo(io::IO, a::AbsNonSimpleNumField)
