@@ -197,6 +197,36 @@ end
   @test !haskey(chains, objectid(A))
 end
 
+@testset "Common super fields" begin
+  # embed registers super fields, and common_super finds the smallest common
+  # one of the input type, also through mutual embeddings.
+  Qx, x = QQ["x"]
+  K, a = number_field(x^2 - 2, "a", cached = false)
+  L, b = number_field(x^4 - 2, "b", cached = false)
+  M, c = number_field(x^8 - 2, "c", cached = false)
+  embed(hom(K, L, b^2))
+  embed(hom(L, M, c^2))
+  @test Hecke.common_super(K, L) === L
+  @test Hecke.common_super(L, K) === L
+  @test Hecke.common_super(K, M) === M
+  @test Hecke.common_super(M, K) === M
+
+  S, d = number_field(x^4 - 32, "d", cached = false)
+  mS = hom(S, L, 2*b)
+  embed(mS)
+  embed(inv(mS))
+  @test Hecke.common_super(L, S) === L
+  @test Hecke.common_super(S, L) === S
+  @test Hecke.common_super(K, S) === S
+
+  K1, a1 = number_field(x^2 - 3, "a1", cached = false)
+  K2, a2 = number_field(x^2 - 5, "a2", cached = false)
+  N, = number_field(K1, K2)
+  @test Hecke.common_super(K1, N) === N
+  @test Hecke.common_super(K1, K2) === nothing
+  @test_throws "no common parent known" a1 + a2
+end
+
 @testset "Common super fields of a field and its absolute field" begin
   # absolute_simple_field embeds K and its absolute field into each other,
   # and the search for a common super field must not loop on that cycle. A

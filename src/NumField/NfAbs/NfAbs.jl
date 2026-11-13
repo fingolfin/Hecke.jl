@@ -1083,7 +1083,7 @@ function embed(f::Map{<:NumField, <:NumField})
   end
   s = get_attribute!(c, :subs, [])::Vector{Any}
   push!(s, f)
-  s = get_attribute!(c, :sub_of, WeakRef[])::Vector{WeakRef}
+  s = get_attribute!(d, :sub_of, WeakRef[])::Vector{WeakRef}
   push!(s, WeakRef(c))
 end
 
